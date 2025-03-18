@@ -1,10 +1,20 @@
-import NextAuth, { AuthOptions } from "next-auth";
+import NextAuth, { AuthOptions, Session } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
 import { connectToDatabase } from "@/lib/mongodb";
 import User from "@/models/User";
 import bcrypt from "bcrypt";
 import { registrationSchema } from "@/lib/schemas"; // Import Zod schema
 import { ZodError } from "zod";
+
+interface SessionUser {
+  name?: string | null;
+  email?: string | null;
+  image?: string | null;
+}
+
+interface CustomSession extends Session {
+  user: SessionUser;
+}
 
 export const authOptions: AuthOptions = {
   providers: [
@@ -63,7 +73,7 @@ export const authOptions: AuthOptions = {
           );
           if (!isValid) throw new Error("Invalid credentials");
 
-          return { id: user.id, name: user.username };
+          return { id: user.id, name: user.username, email: user.email };
         } catch (error) {
           if (error instanceof ZodError) {
             throw new Error(error.errors[0].message);
@@ -80,6 +90,26 @@ export const authOptions: AuthOptions = {
   secret: process.env.NEXTAUTH_SECRET,
   pages: {
     signIn: "/login", // Redirect to login page on error
+  },
+  callbacks: {
+    async session({ session, token }) {
+      const customSession: CustomSession = {
+        ...session,
+        user: {
+          name: session.user?.name,
+          email: token.email as string, // Safely access token.email, it's used in jwt
+          image: session.user?.image,
+        },
+      };
+
+      return customSession;
+    },
+    async jwt({ token, user }) {
+      if (user) {
+        token.email = user.email;
+      }
+      return token;
+    },
   },
 };
 
