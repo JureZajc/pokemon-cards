@@ -14,14 +14,14 @@ export default function CardSetItem({ set }: CardSetItemProps) {
 
   return (
     <Link
-      href={`/card-sets/${set.id}`}
+      href={`/card-sets/${set.id}?name=${encodeURIComponent(set.name)}`} // Include set name in URL
       className="bg-white rounded-lg shadow-md p-4 flex flex-col items-center"
     >
       <Image
         src={set.images.logo}
         alt={`${set.name} Logo`}
-        width={160} // Required: Set the width
-        height={80} // Required: Set the height
+        width={160}
+        height={80}
         unoptimized={true}
         className="h-20 w-auto mb-2"
       />
