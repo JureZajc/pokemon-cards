@@ -10,6 +10,7 @@ interface SessionUser {
   name?: string | null;
   email?: string | null;
   image?: string | null;
+  id?: string;
 }
 
 interface CustomSession extends Session {
@@ -96,6 +97,7 @@ export const authOptions: AuthOptions = {
       const customSession: CustomSession = {
         ...session,
         user: {
+          id: token.id as string,
           name: session.user?.name,
           email: token.email as string, // Safely access token.email, it's used in jwt
           image: session.user?.image,
@@ -106,6 +108,7 @@ export const authOptions: AuthOptions = {
     },
     async jwt({ token, user }) {
       if (user) {
+        token.id = user.id;
         token.email = user.email;
       }
       return token;

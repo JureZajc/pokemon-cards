@@ -1,9 +1,13 @@
-import React from "react";
-import CardList from "../components/CardList";
+import CardSetContent from "./CardSetContent";
 import { notFound } from "next/navigation";
 
 interface Params {
   setId: string;
+}
+
+interface Props {
+  params: Params;
+  searchParams: { name: string };
 }
 
 async function getCardsForSet(setId: string) {
@@ -19,7 +23,7 @@ async function getCardsForSet(setId: string) {
     headers: {
       "X-Api-Key": apiKey,
     },
-    next: { revalidate: 3600 },
+    next: { revalidate: 3600 }, // Cache for an hour
   });
 
   if (!res.ok) {
@@ -31,33 +35,20 @@ async function getCardsForSet(setId: string) {
   return data.data;
 }
 
-// ✅ Define generateStaticParams
+// ✅ Static params function (optional)
 export async function generateStaticParams() {
-  return []; // Can be replaced with a list of static set IDs if available
+  return [];
 }
 
-// ✅ Ensure params are awaited properly
-export default async function CardSetDetailPage({
-  params,
-}: {
-  params: Params;
-}) {
+export default async function CardSetDetailPage({ params }: Props) {
   if (!params?.setId) {
     return <div className="text-center text-red-500">Invalid set ID</div>;
   }
 
   const cards = await getCardsForSet(params.setId);
-
   if (!cards) {
     notFound();
   }
 
-  return (
-    <div className="container mx-auto py-8">
-      <h1 className="text-3xl font-bold mb-4 text-center">
-        Cards in Set: {params.setId}
-      </h1>
-      <CardList cards={cards} />
-    </div>
-  );
+  return <CardSetContent cards={cards} />;
 }
