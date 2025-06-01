@@ -1,10 +1,13 @@
-import type { NextConfig } from "next";
-
-const nextConfig: NextConfig = {
-  /* config options here */
-  images: {
-    domains: ["images.pokemontcg.io"], // Add the image domain(s) here
-  },
+const nextConfig = {
+    images: {
+        remotePatterns: [
+            {
+                protocol: 'https',
+                hostname: 'images.pokemontcg.io',
+            },
+        ],
+    },
 };
 
 export default nextConfig;
+
