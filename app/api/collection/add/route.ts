@@ -1,7 +1,7 @@
 // app/api/collection/add/route.ts
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
-import { authOptions } from "../../auth/[...nextauth]/route"; // Adjust path as needed
+import { authOptions } from "@/lib/auth";
 import { connectToDatabase } from "@/lib/mongodb";
 import Collection from "@/models/Collection"; // Import the model
 import type { ICollection } from "@/models/Collection"; // Import the interface

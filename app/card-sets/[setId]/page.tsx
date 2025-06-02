@@ -1,15 +1,6 @@
 import CardSetContent from "./CardSetContent";
 import { notFound } from "next/navigation";
 
-interface Params {
-  setId: string;
-}
-
-interface Props {
-  params: Params;
-  searchParams: { name: string };
-}
-
 async function getCardsForSet(setId: string) {
   const apiKey = process.env.TCG_API;
 
@@ -40,15 +31,20 @@ export async function generateStaticParams() {
   return [];
 }
 
-export default async function CardSetDetailPage({ params }: Props) {
-  if (!params?.setId) {
+export default async function CardSetDetailPage({
+  params,
+}: {
+  params: Promise<{ setId: string }>;
+}) {
+  const resolvedParams = await params;
+
+  if (!resolvedParams?.setId) {
     return <div className="text-center text-red-500">Invalid set ID</div>;
   }
 
-  const cards = await getCardsForSet(params.setId);
+  const cards = await getCardsForSet(resolvedParams.setId);
   if (!cards) {
     notFound();
   }
-
   return <CardSetContent cards={cards} />;
 }
