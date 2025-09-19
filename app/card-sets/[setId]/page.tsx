@@ -1,54 +1,35 @@
+import {notFound} from "next/navigation";
 import CardSetContent from "./CardSetContent";
-import { notFound } from "next/navigation";
 
-interface Params {
-  setId: string;
-}
+// Next.js 15+ PageProps type structure (used internally for routing)
+export default async function CardSetDetailPage({
+                                                    params,
+                                                }: {
+    params: Promise<{ setId: string }>;
+}) {
+    const apiKey = process.env.TCG_API;
+    const {setId} = await params;
 
-interface Props {
-  params: Params;
-  searchParams: { name: string };
-}
+    if (!setId || !apiKey) {
+        notFound();
+    }
 
-async function getCardsForSet(setId: string) {
-  const apiKey = process.env.TCG_API;
+    const apiUrl = `https://api.pokemontcg.io/v2/cards?q=set.id:${setId}`;
 
-  if (!apiKey) {
-    throw new Error("TCG_API key is not defined in environment variables.");
-  }
+    const res = await fetch(apiUrl, {
+        headers: {
+            "X-Api-Key": apiKey,
+        },
+        next: {revalidate: 3600},
+    });
 
-  const apiUrl = `https://api.pokemontcg.io/v2/cards?q=set.id:${setId}`;
+    if (!res.ok) {
+        console.error(`Failed to fetch cards for set ${setId}: ${res.status}`);
+        notFound();
+    }
 
-  const res = await fetch(apiUrl, {
-    headers: {
-      "X-Api-Key": apiKey,
-    },
-    next: { revalidate: 3600 }, // Cache for an hour
-  });
+    const json = await res.json();
+    const cards = json.data;
 
-  if (!res.ok) {
-    console.error(`Failed to fetch cards for set ${setId}: ${res.status}`);
-    return null;
-  }
-
-  const data = await res.json();
-  return data.data;
-}
-
-// ✅ Static params function (optional)
-export async function generateStaticParams() {
-  return [];
-}
-
-export default async function CardSetDetailPage({ params }: Props) {
-  if (!params?.setId) {
-    return <div className="text-center text-red-500">Invalid set ID</div>;
-  }
-
-  const cards = await getCardsForSet(params.setId);
-  if (!cards) {
-    notFound();
-  }
-
-  return <CardSetContent cards={cards} />;
+    return <CardSetContent cards={cards}/>;
 }
